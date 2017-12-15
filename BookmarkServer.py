@@ -17,34 +17,15 @@
 #     that short name in its dictionary and redirects to the corresponding
 #     long URI.
 #
-# Your job in this exercise is to finish the server code.
-#
-# Here are the steps you need to complete:
-#
-# 1. Write the CheckURI function, which takes a URI and returns True if a
-#    request to that URI returns a 200 OK, and False otherwise.
-#
-# 2. Write the code inside do_GET that sends a 303 redirect to a known name.
-#
-# 3. Write the code inside do_POST that sends a 400 error if the form fields
-#    are missing.
-#
-# 4. Write the code inside do_POST that sends a 303 redirect to the form
-#    after saving a newly submitted URI.
-#
-# 5. Write the code inside do_POST that sends a 404 error if a URI is not
-#    successfully checked (i.e. if CheckURI returns false).
-#
-# In each step, you'll need to delete a line of code that raises the
-# NotImplementedError exception.  These are there as placeholders in the
-# starter code.
-#
-# After writing each step, restart the server and run test.py to test it.
 
 import http.server
+import threading 
+from socketserver import ThreadingMixIn
 import requests
 import os
 from urllib.parse import unquote, parse_qs
+
+
 
 memory = {}
 
@@ -67,6 +48,8 @@ form = '''<!DOCTYPE html>
 </pre>
 '''
 
+class ThreadHTTPServer(ThreadingMixIn, http.server.HTTPServer):
+    "This is an HTTPServer that supports thread-based concurrency"
 
 def CheckURI(uri, timeout=5):
     '''Check whether this URI is reachable, i.e. does it return a 200 OK?
@@ -152,5 +135,5 @@ class Shortener(http.server.BaseHTTPRequestHandler):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))
     server_address = ('', port)
-    httpd = http.server.HTTPServer(server_address, Shortener)
+    httpd = ThreadHTTPServer(server_address, Shortener)
     httpd.serve_forever()
